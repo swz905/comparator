@@ -416,39 +416,37 @@ Respond with a JSON object:
         {
             "name": "Metric Name",
             "description": "Brief 1-2 sentence explanation.",
-            "isObjective": true,
-            "numericValue": true
+            "isObjective": true
         }
     ],
     "comparison": {
         "Item Name": {
-            "Metric Name": "value WITH UNIT"
+            "Metric Name": "value WITH UNIT (e.g., $999, 6.7 inches)"
+        }
+    },
+    "chartScores": {
+        "Metric Name": {
+            "Item Name": 75
         }
     },
     "winners": {
         "Metric Name": "Best item name or null if subjective"
-    },
-    "needsMoreInfo": []
+    }
 }
 
 RULES:
 1. Include ${customOnly ? 'ONLY the custom parameters' : '5-10 metrics'}
-2. Set "numericValue": true if the metric can be scored 0-100 for charts
-3. In "winners", mark the best item per metric (null if subjective)
-4. Use exact item names: ${items.join(', ')}
-5. Return ONLY valid JSON
-6. IMPORTANT - ALWAYS include appropriate units with values where relevant:
-   - Price: Include currency symbol (e.g., "$999", "₹79,999", "€899")
-   - Battery: Include capacity unit (e.g., "4500mAh", "5000mAh")
-   - Battery Life: Include time unit (e.g., "12 hours", "2 days")
-   - Display Size: Include inches (e.g., "6.7 inches", "6.1\"")
-   - Weight: Include grams or kg (e.g., "187g", "1.2kg")
-   - Storage/RAM: Include GB/TB (e.g., "256GB", "8GB RAM")
-   - Speed/Frequency: Include Hz/GHz (e.g., "120Hz", "3.2GHz")
-   - Resolution: Include full spec (e.g., "1080p", "4K", "2796x1290")
-   - Ratings: Include scale (e.g., "4.5/5", "92/100")
-   - For scores/ratings out of 100, just use the number
-   - Only skip units for truly unitless qualitative values (e.g., "Excellent", "Premium")`;
+2. "comparison" contains DISPLAY values with proper units (e.g., "$999", "6.7 inches", "4500mAh")
+3. "chartScores" contains NORMALIZED scores from 0-100 for radar chart visualization:
+   - For each metric, score each item relative to the others (best = 90-100, worst = 20-40)
+   - Higher score = better (even for price: cheaper = higher score)
+   - Score based on how good the value is in real-world context
+4. In "winners", mark the best item per metric (null if subjective)
+5. Use exact item names: ${items.join(', ')}
+6. Return ONLY valid JSON
+7. ALWAYS include proper units in comparison values:
+   - Price: "$999", "₹79,999" | Battery: "4500mAh" | Display: "6.7 inches"
+   - Weight: "187g" | Storage: "256GB" | RAM: "8GB" | Refresh: "120Hz"`;
 
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
@@ -719,13 +717,11 @@ function renderRadarChart(comparisonData) {
         typeof m === 'string' ? { name: m, numericValue: true } : m
     );
 
-    // Filter to only numeric metrics (max 8 for readability)
-    const chartMetrics = metricsArray
-        .filter(m => m.numericValue !== false)
-        .slice(0, 8);
+    // Use up to 8 metrics for the chart
+    const chartMetrics = metricsArray.slice(0, 8);
 
     if (chartMetrics.length < 3) {
-        chartView.innerHTML = '<div class="chart-container"><p style="color: var(--text-muted);">Not enough numeric metrics for chart visualization. At least 3 needed.</p></div>';
+        chartView.innerHTML = '<div class="chart-container"><p style="color: var(--text-muted);">Not enough metrics for chart visualization. At least 3 needed.</p></div>';
         return;
     }
 
@@ -742,16 +738,19 @@ function renderRadarChart(comparisonData) {
 
     const datasets = currentItems.map((item, index) => {
         const data = chartMetrics.map(metric => {
+            // Use chartScores if available (LLM-provided normalized scores)
+            if (comparisonData.chartScores?.[metric.name]?.[item] !== undefined) {
+                return comparisonData.chartScores[metric.name][item];
+            }
+            // Fallback: try to extract number from comparison value
             const value = comparisonData.comparison[item]?.[metric.name] || 'N/A';
-            // Try to extract a numeric value or normalize
             const numMatch = value.toString().match(/[\d.]+/);
             if (numMatch) {
-                // Normalize to 0-100 scale (rough estimation)
                 let num = parseFloat(numMatch[0]);
-                if (num > 100) num = 100;
-                return num;
+                // Clamp to 0-100
+                return Math.min(Math.max(num, 0), 100);
             }
-            return 50; // Default middle value for non-numeric
+            return 50; // Default for non-numeric
         });
 
         return {
