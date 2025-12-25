@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Comparator - Compare anything with AI-powered insights. Products, places, hotels, books, and more. Powered by Perplexity and Groq AI.">
+    <meta name="keywords" content="comparison, AI, compare products, compare prices, Perplexity, Groq, LLM">
+    <meta name="author" content="Comparator">
+    <title>Comparator - AI-Powered Universal Comparison Tool</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js for Radar Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Configuration (API Keys) -->
+    <script src="config.js"></script>
+</head>
+
+<body>
+    <div class="background-gradient"></div>
+
+    <main class="container">
+        <header class="header">
+            <h1 class="title">
+                <span class="gradient-text">Comparator</span>
+            </h1>
+            <p class="subtitle">Compare anything with AI-powered insights and real-time web data</p>
+        </header>
+
+        <section class="comparison-form">
+            <div class="form-card">
+                <label class="form-label">
+                    What do you want to compare?
+                </label>
+                <p class="form-hint">Add items to compare (minimum 2, maximum 5). Spelling mistakes will be
+                    auto-corrected!</p>
+
+                <div id="items-container" class="items-container">
+                    <div class="item-input-wrapper">
+                        <input type="text" class="item-input" placeholder="e.g., iPhone 15 Pro" maxlength="100">
+                        <button type="button" class="remove-item-btn" title="Remove item">×</button>
+                    </div>
+                    <div class="item-input-wrapper">
+                        <input type="text" class="item-input" placeholder="e.g., Samsung Galaxy S24" maxlength="100">
+                        <button type="button" class="remove-item-btn" title="Remove item">×</button>
+                    </div>
+                </div>
+
+                <button id="add-item-btn" class="add-item-btn" title="Add another item">
+                    <span>+</span> Add Item
+                </button>
+
+                <!-- Custom Parameters Section -->
+                <div class="custom-params-section">
+                    <div class="custom-params-header">
+                        <label class="form-label small">Custom Parameters (Optional)</label>
+                        <div class="custom-only-toggle">
+                            <input type="checkbox" id="custom-only-checkbox" class="toggle-checkbox">
+                            <label for="custom-only-checkbox" class="toggle-label">
+                                <span class="toggle-text">Custom Only</span>
+                                <span class="toggle-hint">Use only your parameters, no AI suggestions</span>
+                            </label>
+                        </div>
+                    </div>
+                    <p class="form-hint small">Add specific metrics you want to compare (e.g., "battery life", "price",
+                        "weight")</p>
+
+                    <div id="custom-params-container" class="custom-params-container">
+                        <!-- Custom parameters will be added here -->
+                    </div>
+
+                    <button id="add-param-btn" class="add-param-btn" title="Add custom parameter">
+                        <span>+</span> Add Parameter
+                    </button>
+                </div>
+
+                <button id="compare-btn" class="compare-button">
+                    <span class="button-text">Compare Now</span>
+                    <span class="button-icon">→</span>
+                </button>
+
+                <div id="example-section" class="examples">
+                    <p class="examples-title">Try these examples:</p>
+                    <div class="example-chips">
+                        <button class="example-chip" data-example="iPhone 15 Pro, Samsung Galaxy S24, Google Pixel 8">📱
+                            Smartphones</button>
+                        <button class="example-chip" data-example="Paris, Tokyo, New York">🌍 Cities</button>
+                        <button class="example-chip" data-example="Tesla Model 3, BMW i4, Polestar 2">🚗 Electric
+                            Cars</button>
+                        <button class="example-chip" data-example="Marriott, Hilton, Hyatt">🏨 Hotels</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="loading-section" class="loading-section hidden">
+            <div class="loading-card">
+                <div class="loading-spinner"></div>
+                <p class="loading-text">Gathering information and analyzing...</p>
+                <p id="loading-details" class="loading-details"></p>
+            </div>
+        </section>
+
+        <section id="error-section" class="error-section hidden">
+            <div class="error-card">
+                <div class="error-icon">⚠️</div>
+                <h3 class="error-title">Something went wrong</h3>
+                <p id="error-message" class="error-message"></p>
+                <button id="retry-btn" class="retry-button">Try Again</button>
+            </div>
+        </section>
+
+        <section id="results-section" class="results-section hidden">
+            <div class="results-header">
+                <h2 class="results-title">Comparison Results</h2>
+                <div class="results-actions">
+                    <div class="view-toggle">
+                        <button id="table-view-btn" class="view-btn active" title="Table View">
+                            <span>📊</span> Table
+                        </button>
+                        <button id="chart-view-btn" class="view-btn" title="Radar Chart View">
+                            <span>🕸️</span> Chart
+                        </button>
+                    </div>
+                    <button id="new-comparison-btn" class="new-comparison-btn">New Comparison</button>
+                </div>
+            </div>
+
+            <!-- Images Section -->
+            <div id="images-section" class="images-section hidden">
+                <div id="images-container" class="images-container">
+                    <!-- Product images will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Table View -->
+            <div id="table-view" class="view-container">
+                <div id="results-table-container" class="table-container">
+                    <!-- Dynamic table will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Chart View -->
+            <div id="chart-view" class="view-container hidden">
+                <div class="chart-container">
+                    <canvas id="radar-chart"></canvas>
+                </div>
+                <p class="chart-note">Note: Chart shows normalized values (0-100) for visual comparison. Hover for
+                    actual values.</p>
+            </div>
+
+            <div id="sources-section" class="sources-section">
+                <button id="sources-toggle" class="sources-toggle">
+                    <span class="sources-toggle-text">📚 Sources</span>
+                    <span class="sources-toggle-icon">▼</span>
+                </button>
+                <div id="sources-content" class="sources-content hidden">
+                    <div id="sources-list" class="sources-list">
+                        <!-- Sources will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>Powered by <a href="https://www.perplexity.ai/" target="_blank" rel="noopener">Perplexity AI</a> & <a
+                href="https://groq.com/" target="_blank" rel="noopener">Groq</a></p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
