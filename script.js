@@ -1,11 +1,11 @@
-// Configuration loaded from config.js
-const PERPLEXITY_API_KEY = CONFIG.PERPLEXITY_API_KEY;
-const GROQ_API_KEY = CONFIG.GROQ_API_KEY;
-const GROQ_MODEL = CONFIG.GROQ_MODEL;
+// Configuration - Uses Vite env vars in production, falls back to config.js for local dev
+const PERPLEXITY_API_KEY = import.meta.env?.VITE_PERPLEXITY_API_KEY || (typeof CONFIG !== 'undefined' ? CONFIG.PERPLEXITY_API_KEY : '');
+const GROQ_API_KEY = import.meta.env?.VITE_GROQ_API_KEY || (typeof CONFIG !== 'undefined' ? CONFIG.GROQ_API_KEY : '');
+const GROQ_MODEL = import.meta.env?.VITE_GROQ_MODEL || (typeof CONFIG !== 'undefined' ? CONFIG.GROQ_MODEL : 'llama-3.3-70b-versatile');
 
-const MAX_ITEMS = CONFIG.MAX_ITEMS || 5;
-const MIN_ITEMS = CONFIG.MIN_ITEMS || 2;
-const MAX_ADDITIONAL_SEARCHES = CONFIG.MAX_ADDITIONAL_SEARCHES || 2;
+const MAX_ITEMS = 5;
+const MIN_ITEMS = 2;
+const MAX_ADDITIONAL_SEARCHES = 2;
 
 // DOM Elements
 const itemsContainer = document.getElementById('items-container');

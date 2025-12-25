@@ -17,8 +17,8 @@
     <link rel="stylesheet" href="style.css">
     <!-- Chart.js for Radar Charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Configuration (API Keys) -->
-    <script src="config.js"></script>
+    <!-- Configuration for local development (optional, uses .env in production) -->
+    <script src="config.js" onerror="console.log('No local config.js, using env vars')"></script>
 </head>
 
 <body>
@@ -173,7 +173,7 @@
                 href="https://groq.com/" target="_blank" rel="noopener">Groq</a></p>
     </footer>
 
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 
 </html>
