@@ -82,15 +82,4 @@ comparator/
 └── README.md
 ```
 
-## 🔒 Security
 
-- API keys in `.env` and `config.js` are **gitignored**
-- For Vercel: Use Environment Variables (never commit keys)
-- For production: Consider a backend proxy
-
-## 📝 License
-
-MIT License
-
----
-Made with ❤️ using AI
